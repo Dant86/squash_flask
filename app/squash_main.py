@@ -52,9 +52,12 @@ def show_signup_page():
 		passw = request.form.get("password")
 		passw = bcrypt.hashpw(passw.encode("utf8"), bcrypt.gensalt())
 		new_user = User(fname, lname, email, uname, passw)
+		session["user"] = new_user.id
+		
 		db.session.add(new_user)
 		db.session.commit()
-		session["user"] = new_user.id
+		new_user.rank = new_user.id
+		db.session.commit()
 		return redirect("/roster")
 
 @app.route("/matches", methods=["GET", "POST"])
@@ -93,3 +96,9 @@ if __name__ == "__main__":
 		app.run()
 	elif args[1] == "run_dev":
 		app.run(debug=True)
+	elif args[1] == "clear":
+		meta = db.metadata
+		for table in reversed(meta.sorted_tables):
+			print('Clear table %s' % table)
+			db.session.execute(table.delete())
+		db.session.commit()

@@ -42,7 +42,6 @@ class User(db.Model):
 		self.email = email
 		self.u_name = username
 		self.pass_w = password
-		self.rank = self.id
 
 	def __str__(self):
 		return "{}".format(self.u_name)

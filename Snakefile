@@ -17,3 +17,7 @@ rule upgrade:
 rule migrate:
 	shell:
 		"python app/models.py db migrate"
+
+rule clear:
+	shell:
+		"python app/models.py clear"
