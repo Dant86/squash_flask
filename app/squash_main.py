@@ -1,12 +1,10 @@
 from flask import *
-import sqlite3
 from flask_sqlalchemy import SQLAlchemy
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
 import os
 from os.path import join, dirname
 from dotenv import load_dotenv
-import datetime
 import bcrypt
 import sys
 from models import *
@@ -33,12 +31,13 @@ def homepage():
 @app.route("/login", methods=["GET", "POST"])
 def prompt_login():
 	if request.method == "GET":
+		if session["user"] is not None:
+			return redirect("/roster")
 		return render_template("login.html")
 	if request.method == "POST":
 		uname = request.form.get("username")
 		passw = request.form.get("password")
-		user = User.query.filter(User.u_name.like())
-
+		user = User.query.filter(User.u_name.like(uname))
 
 @app.route("/signup", methods=["GET", "POST"])
 def show_signup_page():
@@ -53,7 +52,6 @@ def show_signup_page():
 		passw = bcrypt.hashpw(passw.encode("utf8"), bcrypt.gensalt())
 		new_user = User(fname, lname, email, uname, passw)
 		session["user"] = new_user.id
-		
 		db.session.add(new_user)
 		db.session.commit()
 		new_user.rank = new_user.id
@@ -66,6 +64,8 @@ def matches():
 		all_matches = Match.query.all()
 		return render_template("matches.html", matches=all_matches)
 	if request.method == "POST":
+		if session["admin"] is None:
+			return redirect("/admin")
 		winner = request.form.get("winner")
 		loser = request.form.get("loser")
 		game1 = request.form.get("game1")
@@ -88,7 +88,14 @@ def show_roster():
 	users.sort(key=lambda x: x.rank)
 	return render_template("roster.html", users=users)
 
-# @app.route()
+@app.route("/admin", methods=["GET", "POST"])
+def mk_admin():
+	if request.method == "GET":
+		return render_template("signup_admin.html")
+	if request.method == "POST":
+		uname = request.form.get("username")
+		passw = request.form.get("password")
+		
 
 if __name__ == "__main__":
 	args = sys.argv

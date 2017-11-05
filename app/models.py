@@ -26,6 +26,10 @@ class Admin(db.Model):
 	u_name = db.Column('username', db.Unicode)
 	pass_w = db.Column('password', db.Unicode)
 
+	def __init__(self, uname, passw):
+		self.u_name = uname
+		self.pass_w = passw
+
 class User(db.Model):
 	__tablename__ = "squash_user"
 	id = db.Column('id', db.Integer, primary_key=True)
