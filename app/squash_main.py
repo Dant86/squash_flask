@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 import bcrypt
 import sys
 from models import *
+from flask_socketio import SocketIO, emit
 
 dotenv_path = join(dirname(__file__), '../.env')
 load_dotenv(dotenv_path)
@@ -19,6 +20,7 @@ app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = conn
 app.secret_key = os.environ.get("APP_SECRET_KEY")
 db = SQLAlchemy(app)
+socketio = SocketIO(app)
 
 @app.route("/")
 def main_ting():
@@ -31,13 +33,20 @@ def homepage():
 @app.route("/login", methods=["GET", "POST"])
 def prompt_login():
 	if request.method == "GET":
-		if session["user"] is not None:
-			return redirect("/roster")
+		if session.get("user"):
+			if session["user"] is not None:
+				return redirect("/roster")
 		return render_template("login.html")
 	if request.method == "POST":
 		uname = request.form.get("username")
 		passw = request.form.get("password")
-		user = User.query.filter(User.u_name.like(uname))
+		user = User.query.filter_by(u_name=uname)[0]
+		if bcrypt.checkpw(passw.encode("utf8"), user.password) == True:
+			session["user"] = user.id
+			return redirect("/roster")
+		else:
+			err_msg = "Incorrect password; please try again."
+			return render_template("login.html", err_msg=err_msg)
 
 @app.route("/signup", methods=["GET", "POST"])
 def show_signup_page():
@@ -49,7 +58,7 @@ def show_signup_page():
 		email = request.form.get("email")
 		uname = request.form.get("username")
 		passw = request.form.get("password")
-		passw = bcrypt.hashpw(passw.encode("utf8"), bcrypt.gensalt())
+		# passw = bcrypt.hashpw(passw.encode("utf8"), bcrypt.gensalt())
 		new_user = User(fname, lname, email, uname, passw)
 		session["user"] = new_user.id
 		db.session.add(new_user)
@@ -95,7 +104,15 @@ def mk_admin():
 	if request.method == "POST":
 		uname = request.form.get("username")
 		passw = request.form.get("password")
-		
+
+@app.route("/logout", methods=["POST", "DELETE"])
+def logout():
+	session.clear()
+	return redirect("/")
+
+@socketio.on("disconnect")
+def logout():
+	session.clear()
 
 if __name__ == "__main__":
 	args = sys.argv

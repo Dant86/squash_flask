@@ -6,6 +6,8 @@ import os
 from os.path import join, dirname
 from dotenv import load_dotenv
 import datetime
+import bcrypt
+from sqlalchemy.orm import synonym
 
 dotenv_path = join(dirname(__file__), '../.env')
 load_dotenv(dotenv_path)
@@ -24,11 +26,21 @@ class Admin(db.Model):
 	__tablename__ = "squash_admin"
 	id = db.Column('id', db.Integer, primary_key=True)
 	u_name = db.Column('username', db.Unicode)
-	pass_w = db.Column('password', db.Unicode)
+	_pass_w = db.Column('password', db.Unicode)
 
 	def __init__(self, uname, passw):
 		self.u_name = uname
-		self.pass_w = passw
+		self._pass_w = passw
+
+	@property
+	def password(self):
+		return bcrypt.hashpw(self._pass_w.encode("utf8"), bcrypt.gensalt())
+
+	@password.setter
+	def password(self, new_pass):
+		self._pass_w = new_pass
+
+	password = synonym('_pass_w', descriptor=password)
 
 class User(db.Model):
 	__tablename__ = "squash_user"
@@ -37,7 +49,7 @@ class User(db.Model):
 	l_name = db.Column('last_name', db.Unicode)
 	email = db.Column('email', db.Unicode)
 	u_name = db.Column('username', db.Unicode)
-	pass_w = db.Column('password', db.Unicode)
+	_pass_w = db.Column('password', db.Unicode)
 	rank = db.Column('rank', db.Integer)
 
 	def __init__(self, fname, lname, email, username, password):
@@ -45,7 +57,17 @@ class User(db.Model):
 		self.l_name = lname
 		self.email = email
 		self.u_name = username
-		self.pass_w = password
+		self._pass_w = password
+
+	@property
+	def password(self):
+		return bcrypt.hashpw(self._pass_w.encode("utf8"), bcrypt.gensalt())
+
+	@password.setter
+	def password(self, new_pass):
+		self._pass_w = new_pass
+
+	password = synonym('_pass_w', descriptor=password)
 
 	def __str__(self):
 		return "{}".format(self.u_name)

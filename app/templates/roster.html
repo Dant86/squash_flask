@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html>
+
+	<form method="post" action="/logout">
+		<input type="hidden" name="_method" value="delete">
+		<input type="submit" value="Logout boi">
+	</form>
+
 	{% for user in users %}
 		<h2>{{ user.u_name }}</h2>
 	{% endfor %}
+
 </html>

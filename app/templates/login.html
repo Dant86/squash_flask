@@ -1,5 +1,8 @@
 <!DOCTYPE html>
 <html>
+	{% if err_msg %}
+		<h2>{{ err_msg }}</h2>
+	{% endif %}
 	<form method="post" action="/login">
 		<input type="text" name="username" placeholder="Username">
 		<input type="text" name="password" placeholder="Password">
