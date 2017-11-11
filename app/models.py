@@ -56,15 +56,18 @@ class User(db.Model):
 	u_name = db.Column('username', db.Unicode)
 	_pass_w = db.Column('password', db.Unicode)
 	rank = db.Column('rank', db.Integer)
+	wins = db.Column('wins', db.Integer)
+	losses = db.Column('losses', db.Integer)
 	tournaments = db.relationship('Tournament', secondary='tournaments', backref = db.backref('players', lazy='dynamic'))
-
-
+	
 	def __init__(self, fname, lname, email, username, password):
 		self.f_name = fname
 		self.l_name = lname
 		self.email = email
 		self.u_name = username
 		self._pass_w = password
+		self.wins = 0
+		self.losses = 0
 
 	@property
 	def password(self):
