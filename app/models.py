@@ -22,6 +22,11 @@ manager = Manager(app)
 
 manager.add_command("db", MigrateCommand)
 
+tournaments = db.Table('tournaments',
+	db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+	db.Column('tournament_id'), db.ForeignKey('tournament.id')
+)
+
 class Admin(db.Model):
 	__tablename__ = "squash_admin"
 	id = db.Column('id', db.Integer, primary_key=True)
@@ -51,6 +56,8 @@ class User(db.Model):
 	u_name = db.Column('username', db.Unicode)
 	_pass_w = db.Column('password', db.Unicode)
 	rank = db.Column('rank', db.Integer)
+	tournaments = db.relationship('Tournament', secondary='tournaments', backref = db.backref('players', lazy='dynamic'))
+
 
 	def __init__(self, fname, lname, email, username, password):
 		self.f_name = fname
@@ -77,8 +84,12 @@ class Tournament(db.Model):
 	id = db.Column('id', db.Integer, primary_key=True)
 	opp_school = db.Column('opp_school', db.Unicode)
 	location = db.Column('location', db.Unicode)
-	date = db.Column('date', db.DateTime, default=datetime.datetime.utcnow())
-	result = db.Column('result', db.Unicode)
+	date = db.Column('date', db.Unicode)
+
+	def __init__(self, opp_school, location, date):
+		self.opp_school = opp_school
+		self.location = location
+		self.date = date
 
 class Match(db.Model):
 	__tablename__ = "squash_match"
